@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { scene } from '../renderer.js';
 import { colliders } from '../geometry.js';
-import { NPC } from './NPC.js';
+import { Walker } from './Walker.js';
 import { Crawler } from './Crawler.js';
 import { spawnBlood, spawnBloodFountain } from '../particles.js';
 import { playOuch } from '../audio.js';
@@ -16,7 +16,7 @@ export const npcMeshMap = new Map(); // mesh → npc
 const _npcDir = new THREE.Vector3();
 
 export function spawnNPC(x, z, ry = 0) {
-  const npc = new NPC(x, z, ry);
+  const npc = new Walker(x, z, ry);
   scene.add(npc.group);
 
   // Register all child meshes for raycasting
@@ -324,7 +324,7 @@ export function getAliveNPCCount() {
 
 export function getZombieBreakdown() {
   const alive = npcs.filter(npc => npc.alive && !npc.dying);
-  const walkers = alive.filter(npc => !(npc instanceof Crawler)).length;
+  const walkers = alive.filter(npc => npc instanceof Walker).length;
   const crawlers = alive.filter(npc => npc instanceof Crawler).length;
   return { walkers, crawlers };
 }

@@ -3,6 +3,7 @@ import { scene } from './renderer.js';
 import { box, cyl, solidBox, addCollider } from './geometry.js';
 import { M, matGround, matDirt, matConcrete, matBrick, matWood, matRoof,
          matRubble, matWindow, matSandbag, matBarrel } from './materials.js';
+import { registerDoor } from './doorTriggers.js';
 
 // ═══════════════════════════════════════════════════════════════════
 //  WORLD CONSTRUCTION
@@ -222,43 +223,73 @@ export function buildWorld() {
 
   // West side
   buildingA(-11, -18, Math.PI/2);
+  registerDoor(-11 + 5*Math.sin(Math.PI/2), -18 + 5*Math.cos(Math.PI/2), -11, -18, 5);
   buildingA(-11, -30, Math.PI/2);
+  registerDoor(-11 + 5*Math.sin(Math.PI/2), -30 + 5*Math.cos(Math.PI/2), -11, -30, 5);
   shed(-11, -40, Math.PI/2);
+  registerDoor(-11 + 2*Math.sin(Math.PI/2), -40 + 2*Math.cos(Math.PI/2), -11, -40, 3);
   buildingA(-11,  12, Math.PI/2);
+  registerDoor(-11 + 5*Math.sin(Math.PI/2), 12 + 5*Math.cos(Math.PI/2), -11, 12, 5);
   buildingA(-11,  24, Math.PI/2);
+  registerDoor(-11 + 5*Math.sin(Math.PI/2), 24 + 5*Math.cos(Math.PI/2), -11, 24, 5);
   buildingB(-11,  35, Math.PI/2);
+  registerDoor(-11 + 3.5*Math.sin(Math.PI/2), 35 + 3.5*Math.cos(Math.PI/2), -11, 35, 4);
   shed(-11, 48, Math.PI/2);
+  registerDoor(-11 + 2*Math.sin(Math.PI/2), 48 + 2*Math.cos(Math.PI/2), -11, 48, 3);
 
   // East side
   buildingA(11, -18, -Math.PI/2);
+  registerDoor(11 + 5*Math.sin(-Math.PI/2), -18 + 5*Math.cos(-Math.PI/2), 11, -18, 5);
   buildingB(11, -30, -Math.PI/2);
+  registerDoor(11 + 3.5*Math.sin(-Math.PI/2), -30 + 3.5*Math.cos(-Math.PI/2), 11, -30, 4);
   buildingA(11, -42, -Math.PI/2);
+  registerDoor(11 + 5*Math.sin(-Math.PI/2), -42 + 5*Math.cos(-Math.PI/2), 11, -42, 5);
   buildingA(11,  12, -Math.PI/2);
+  registerDoor(11 + 5*Math.sin(-Math.PI/2), 12 + 5*Math.cos(-Math.PI/2), 11, 12, 5);
   shed(11,  24, -Math.PI/2);
+  registerDoor(11 + 2*Math.sin(-Math.PI/2), 24 + 2*Math.cos(-Math.PI/2), 11, 24, 3);
   buildingA(11,  34, -Math.PI/2);
+  registerDoor(11 + 5*Math.sin(-Math.PI/2), 34 + 5*Math.cos(-Math.PI/2), 11, 34, 5);
   buildingA(11,  48, -Math.PI/2);
+  registerDoor(11 + 5*Math.sin(-Math.PI/2), 48 + 5*Math.cos(-Math.PI/2), 11, 48, 5);
 
   // South side of cross street
   buildingA(-28, -10);
+  registerDoor(-28 + 5*Math.sin(0), -10 + 5*Math.cos(0), -28, -10, 5);
   shed(-38, -10);
+  registerDoor(-38 + 2*Math.sin(0), -10 + 2*Math.cos(0), -38, -10, 3);
   buildingA(28, -10);
+  registerDoor(28 + 5*Math.sin(0), -10 + 5*Math.cos(0), 28, -10, 5);
   buildingB(38, -10);
+  registerDoor(38 + 3.5*Math.sin(0), -10 + 3.5*Math.cos(0), 38, -10, 4);
 
   // North side of cross street
   buildingA(-28, 10, Math.PI);
+  registerDoor(-28 + 5*Math.sin(Math.PI), 10 + 5*Math.cos(Math.PI), -28, 10, 5);
   buildingB(-38, 10, Math.PI);
+  registerDoor(-38 + 3.5*Math.sin(Math.PI), 10 + 3.5*Math.cos(Math.PI), -38, 10, 4);
   buildingA(28, 10, Math.PI);
+  registerDoor(28 + 5*Math.sin(Math.PI), 10 + 5*Math.cos(Math.PI), 28, 10, 5);
   shed(38, 10, Math.PI);
+  registerDoor(38 + 2*Math.sin(Math.PI), 10 + 2*Math.cos(Math.PI), 38, 10, 3);
 
   // Back streets
   buildingA(-28, -26, Math.PI/2);
+  registerDoor(-28 + 5*Math.sin(Math.PI/2), -26 + 5*Math.cos(Math.PI/2), -28, -26, 5);
   buildingA(-28, -38, Math.PI/2);
+  registerDoor(-28 + 5*Math.sin(Math.PI/2), -38 + 5*Math.cos(Math.PI/2), -28, -38, 5);
   buildingA(28, -26, -Math.PI/2);
+  registerDoor(28 + 5*Math.sin(-Math.PI/2), -26 + 5*Math.cos(-Math.PI/2), 28, -26, 5);
   shed(28, -38, -Math.PI/2);
+  registerDoor(28 + 2*Math.sin(-Math.PI/2), -38 + 2*Math.cos(-Math.PI/2), 28, -38, 3);
   buildingA(-28, 24, Math.PI/2);
+  registerDoor(-28 + 5*Math.sin(Math.PI/2), 24 + 5*Math.cos(Math.PI/2), -28, 24, 5);
   buildingA(28, 24, -Math.PI/2);
+  registerDoor(28 + 5*Math.sin(-Math.PI/2), 24 + 5*Math.cos(-Math.PI/2), 28, 24, 5);
   shed(-28, 36, Math.PI/2);
+  registerDoor(-28 + 2*Math.sin(Math.PI/2), 36 + 2*Math.cos(Math.PI/2), -28, 36, 3);
   buildingB(28, 36, -Math.PI/2);
+  registerDoor(28 + 3.5*Math.sin(-Math.PI/2), 36 + 3.5*Math.cos(-Math.PI/2), 28, 36, 4);
 
   // Sandbags
   sandbags(-2.5, 5);  sandbags(2.5, -5, Math.PI);

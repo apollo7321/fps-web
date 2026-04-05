@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { renderer, scene, vmScene, camera, vmCamera } from './renderer.js';
 import { setupLighting } from './lighting.js';
 import { buildWorld, explosiveBarrels, guillotineData } from './world.js';
+import { updateDoorTriggers } from './doorTriggers.js';
 import { createAmmoPickups, updatePickups, resetPickups } from './pickups.js';
 import { M } from './materials.js';
 import { player, resetPlayer } from './player.js';
@@ -21,7 +22,7 @@ import {
   updateParticles, clearAllParticles,
 } from './particles.js';
 import { getCtx, initAudio } from './audio.js';
-import { updateHUD, initHUD, pickupHint } from './hud.js';
+import { updateHUD, initHUD } from './hud.js';
 import { inputState, setupInput, resetInput } from './input.js';
 
 // Architecture Decoupling Modules
@@ -172,9 +173,8 @@ function explodeBarrel(barrel) {
 // ═══════════════════════════════════════════════════════════════════
 function gameOver() {
   document.exitPointerLock();
-  document.getElementById('game-over').style.display = 'flex';
-  document.getElementById('hud').style.display = 'none';
   inputState.paused = true;
+  eventBus.emit('gameOver');
 }
 
 function resetGame() {
@@ -189,11 +189,8 @@ function resetGame() {
   clearAllParticles();
 
   vmGroup.visible = true;  // Restore viewmodel visibility
-  document.getElementById('game-over').style.display = 'none';
-  document.getElementById('paused').style.display = 'none';
-  document.getElementById('overlay').style.display = 'flex';
-
   resetInput();
+  eventBus.emit('gameReset');
   eventBus.emit('ammoChanged', { ammoInMag: weapon.ammoInMag, reserveAmmo: weapon.reserveAmmo });
   eventBus.emit('zombieModeToggled', { active: false, count: 0 });
   eventBus.emit('zombieBreakdownChanged', { walkers: 0, crawlers: 0 });
@@ -209,7 +206,7 @@ setupInput({
     GameState.zombieMode = !GameState.zombieMode;
     if (GameState.zombieMode) {
       // Spawn initial mix of walkers and crawlers if none exist yet
-      if (npcs.length === 0) {
+      if (getAliveNPCCount() === 0) {
         for (let i = 0; i < 7; i++) spawnRandomZombie(player.pos);
         for (let i = 0; i < 3; i++) spawnRandomCrawler(player.pos);
       }
@@ -252,6 +249,9 @@ function update(dt) {
 
   const movementState = PlayerController.updateMovement(dt, player, inputState);
   CameraController.update(dt, player, inputState, weapon, camera, vmCamera, vmGroup);
+
+  // ─── Door Triggers ────────────────────────────────────────────
+  updateDoorTriggers(player.pos, player);
 
   // ─── Weapon timers ────────────────────────────────────────────
   weapon.updateTimers(dt);
@@ -341,12 +341,11 @@ function update(dt) {
 
   if (GameState.pickupHintTimer > 0) {
     GameState.pickupHintTimer -= dt;
-    pickupHint.style.display = 'block';
-    if (GameState.pickupHintTimer <= 0) pickupHint.style.display = 'none';
+    eventBus.emit('pickupHintUpdate', { show: GameState.pickupHintTimer > 0 });
+  } else if (pickupResult.nearPickup) {
+    eventBus.emit('pickupHintUpdate', { show: true, text: '[ MAGAZIN AUFNEHMEN ]' });
   } else {
-    pickupHint.style.display = pickupResult.nearPickup ? 'block' : 'none';
-    if (pickupResult.nearPickup) pickupHint.textContent = '[ MAGAZIN AUFNEHMEN ]';
-    else pickupHint.textContent = '[ MAGAZIN AUFGENOMMEN ]';
+    eventBus.emit('pickupHintUpdate', { show: false });
   }
 
   // ─── Game Over Check ──────────────────────────────────────────

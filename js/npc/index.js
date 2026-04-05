@@ -1,4 +1,5 @@
-export { NPC } from './NPC.js';
+export { BaseNPC } from './BaseNPC.js';
+export { Walker } from './Walker.js';
 export { Crawler } from './Crawler.js';
 export {
   npcs, npcMeshMap,

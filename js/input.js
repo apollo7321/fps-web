@@ -22,8 +22,20 @@ export const FOV_ADS = 46;
 export function setupInput(callbacks, player) {
   const keys = inputState.keys;
 
-  document.addEventListener('keydown', e => { keys[e.code] = true; });
-  document.addEventListener('keyup',   e => { keys[e.code] = false; });
+  document.addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if (e.code === 'MetaLeft') {
+      if (inputState.locked && !inputState.paused) { inputState.adsActive = true; e.preventDefault(); }
+      return;
+    }
+    if (!inputState.locked || inputState.paused) return;
+    if (e.code === 'KeyR') callbacks.onReload();
+    if (e.code === 'KeyY') callbacks.onToggleZombie();
+  });
+  document.addEventListener('keyup', e => {
+    keys[e.code] = false;
+    if (e.code === 'MetaLeft') inputState.adsActive = false;
+  });
 
   document.getElementById('startBtn').addEventListener('click', () => canvas.requestPointerLock());
 
@@ -58,22 +70,6 @@ export function setupInput(callbacks, player) {
     if (e.button === 2) inputState.adsActive = false;
   });
   canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-  // CMD (MetaLeft) as second ADS key
-  document.addEventListener('keydown', e => {
-    if (e.code === 'MetaLeft' && inputState.locked && !inputState.paused) {
-      inputState.adsActive = true; e.preventDefault();
-    }
-  });
-  document.addEventListener('keyup', e => {
-    if (e.code === 'MetaLeft') inputState.adsActive = false;
-  });
-
-  document.addEventListener('keydown', e => {
-    if (!inputState.locked || inputState.paused) return;
-    if (e.code === 'KeyR') callbacks.onReload();
-    if (e.code === 'KeyY') callbacks.onToggleZombie();
-  });
 
   document.getElementById('paused').addEventListener('click', () => canvas.requestPointerLock());
 

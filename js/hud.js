@@ -1,31 +1,51 @@
-// ═══════════════════════════════════════════════════════════════════
-//  HUD HELPERS
-// ═══════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════
-const hudCompass  = document.getElementById('compass');
 import { eventBus } from './EventBus.js';
 
-export function initHUD() {
-  eventBus.on('ammoChanged', ({ ammoInMag, reserveAmmo }) => updateAmmoHUD(ammoInMag, reserveAmmo));
-  eventBus.on('playerDamaged', () => triggerDamageFlash());
-  eventBus.on('enemyKilled', () => showKillFeed());
-  eventBus.on('reloadMsg', ({ show }) => showReloadMsg(show));
-  eventBus.on('zombieModeToggled', ({ active, count }) => updateZombieCounter(active, count));
-  eventBus.on('zombieCountChanged', ({ count }) => updateZombieCounterValue(count));
-  eventBus.on('zombieBreakdownChanged', ({ walkers, crawlers }) => updateZombieBreakdown(walkers, crawlers));
-}
-const hudHealthBar= document.getElementById('health-bar');
-const hudHealthTxt= document.getElementById('health-text');
-const hudCoords   = document.getElementById('coords');
-const hudExpDisplay = document.getElementById('exp-display');
-const hudZombieCounter = document.getElementById('zombie-counter');
+// ═══════════════════════════════════════════════════════════════════
+//  DOM ELEMENT CACHE
+// ═══════════════════════════════════════════════════════════════════
+const hudCompass         = document.getElementById('compass');
+const hudHealthBar       = document.getElementById('health-bar');
+const hudHealthTxt       = document.getElementById('health-text');
+const hudCoords          = document.getElementById('coords');
+const hudExpDisplay      = document.getElementById('exp-display');
+const hudZombieCounter   = document.getElementById('zombie-counter');
 const hudZombieBreakdown = document.getElementById('zombie-breakdown');
-const hudAmmoMag  = document.getElementById('ammo-mag');
-const hudAmmoRes  = document.getElementById('ammo-reserve');
-export const hitFlash    = document.getElementById('hit-flash');
-export const pickupHint  = document.getElementById('pickup-hint');
+const hudAmmoMag         = document.getElementById('ammo-mag');
+const hudAmmoRes         = document.getElementById('ammo-reserve');
+const hitFlash           = document.getElementById('hit-flash');
+const pickupHint         = document.getElementById('pickup-hint');
+const reloadMsg          = document.getElementById('reload-msg');
+const killFeed           = document.getElementById('kill-feed');
+const gameOverEl         = document.getElementById('game-over');
+const hudEl              = document.getElementById('hud');
+const pausedEl           = document.getElementById('paused');
+const overlayEl          = document.getElementById('overlay');
 
 const DIRS = ['N','NNO','NO','ONO','O','OSO','SO','SSO','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+
+export function initHUD() {
+  eventBus.on('ammoChanged',          ({ ammoInMag, reserveAmmo }) => updateAmmoHUD(ammoInMag, reserveAmmo));
+  eventBus.on('playerDamaged',        () => triggerDamageFlash());
+  eventBus.on('enemyKilled',          () => showKillFeed());
+  eventBus.on('reloadMsg',            ({ show }) => showReloadMsg(show));
+  eventBus.on('zombieModeToggled',    ({ active, count }) => updateZombieCounter(active, count));
+  eventBus.on('zombieCountChanged',   ({ count }) => updateZombieCounterValue(count));
+  eventBus.on('zombieBreakdownChanged', ({ walkers, crawlers }) => updateZombieBreakdown(walkers, crawlers));
+  eventBus.on('pickupHintUpdate',     ({ show, text }) => {
+    pickupHint.style.display = show ? 'block' : 'none';
+    if (text !== undefined) pickupHint.textContent = text;
+  });
+  eventBus.on('gameOver', () => {
+    gameOverEl.style.display = 'flex';
+    hudEl.style.display = 'none';
+  });
+  eventBus.on('gameReset', () => {
+    gameOverEl.style.display = 'none';
+    pausedEl.style.display = 'none';
+    overlayEl.style.display = 'flex';
+  });
+  eventBus.on('roofEntered', () => showRoofMessage());
+}
 
 export function updateAmmoHUD(ammoInMag, reserveAmmo) {
   hudAmmoMag.textContent = ammoInMag;
@@ -34,11 +54,10 @@ export function updateAmmoHUD(ammoInMag, reserveAmmo) {
 }
 
 export function showKillFeed() {
-  const feed = document.getElementById('kill-feed');
   const el = document.createElement('div');
   el.className = 'kill-entry';
   el.textContent = 'FEIND AUSGESCHALTET';
-  feed.appendChild(el);
+  killFeed.appendChild(el);
   setTimeout(() => el.remove(), 3200);
 }
 
@@ -66,7 +85,7 @@ export function triggerDamageFlash() {
 }
 
 export function showReloadMsg(show) {
-  document.getElementById('reload-msg').style.display = show ? 'block' : 'none';
+  reloadMsg.style.display = show ? 'block' : 'none';
 }
 
 export function updateZombieCounter(active, count) {
@@ -86,4 +105,13 @@ export function updateZombieCounterValue(count) {
 
 export function updateZombieBreakdown(walkerCount, crawlerCount) {
   hudZombieBreakdown.innerHTML = `Walkers: ${walkerCount}<br>Crawlers: ${crawlerCount}`;
+}
+
+export function showRoofMessage() {
+  const el = document.createElement('div');
+  el.className = 'kill-entry';
+  el.style.color = '#ffdd44';
+  el.textContent = 'DACH ERREICHT';
+  killFeed.appendChild(el);
+  setTimeout(() => el.remove(), 2000);
 }

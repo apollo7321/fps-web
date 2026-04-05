@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { M } from '../materials.js';
-import { NPC } from './NPC.js';
+import { BaseNPC } from './BaseNPC.js';
 
 // ═══════════════════════════════════════════════════════════════════
 //  CRAWLER NPC CLASS
@@ -10,11 +10,7 @@ import { NPC } from './NPC.js';
  * Crawler: A zombie lying face-down, pulling itself forward with its arms.
  * No helmet, no legs. Arms are pivot-based for proper crawling animation.
  */
-export class Crawler extends NPC {
-  constructor(x, z, ry = 0) {
-    super(x, z, ry);
-  }
-
+export class Crawler extends BaseNPC {
   buildModel() {
     const g = this.group;
 
