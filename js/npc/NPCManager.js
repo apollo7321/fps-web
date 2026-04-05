@@ -312,10 +312,15 @@ export function updateNPCs(dt, playerPos, zombieMode) {
 // ─── Reset ──���────────────────────────────────────────────────────
 
 export function resetAllNPCs() {
+  // Remove all NPCs from scene and clear tracking structures
   for (const npc of npcs) {
-    npc.reset();
-    npc.makeNormal();
+    scene.remove(npc.group);
+    npc.group.traverse(child => {
+      if (child.isMesh) npcMeshMap.delete(child);
+    });
   }
+  npcs.length = 0;
+  npcMeshMap.clear();
 }
 
 // ─── Queries ──────────────────────────────���──────────────────────
@@ -345,9 +350,10 @@ export function getZombieBreakdown() {
 
 const CONTACT_DISTANCE = 0.65;
 const SPAWN_INTERVAL = 10.0;
+const EXTREME_SPAWN_INTERVAL = 2.0;
 let zombieSpawnTimer = 0;
 
-export function updateZombieEffects(dt, player) {
+export function updateZombieEffects(dt, player, extremeMode = false) {
   let damageDealt = false;
 
   for (const npc of npcs) {
@@ -374,9 +380,12 @@ export function updateZombieEffects(dt, player) {
   }
 
   // Wave spawning
+  const spawnInterval = extremeMode ? EXTREME_SPAWN_INTERVAL : SPAWN_INTERVAL;
   zombieSpawnTimer += dt;
-  if (zombieSpawnTimer >= SPAWN_INTERVAL) {
-    const spawnCount = 1 + Math.floor(Math.random() * 3);
+  if (zombieSpawnTimer >= spawnInterval) {
+    const spawnCount = extremeMode
+      ? 5 + Math.floor(Math.random() * 4)
+      : 1 + Math.floor(Math.random() * 3);
     for (let i = 0; i < spawnCount; i++) {
       const roll = Math.random();
       if (roll < 0.15) spawnRandomFatty(player.pos);

@@ -10,7 +10,7 @@ export function initAudio() {
   eventBus.on('emptyClick', () => playEmptyClick());
   eventBus.on('reloadStarted', () => playReloadSound());
   eventBus.on('playerStep', () => playFootstep());
-  eventBus.on('enemyDamaged', () => playOuch());
+  eventBus.on('enemyDamaged', (data) => playOuch(data?.distance || 0));
   eventBus.on('playerDamaged', () => playPlayerDamageOuch());
   eventBus.on('itemPickup', () => playPickup());
   eventBus.on('explosion', () => playExplosion());
@@ -158,9 +158,18 @@ export function playFootstep() {
   src.start(t);
 }
 
-export function playOuch() {
+export function playOuch(distance = 0) {
   const ctx = getCtx();
   if (ctx.state !== 'running') ctx.resume();
+
+  // Distance-based attenuation (1/distance law)
+  // Max distance: 50m (beyond that, sound is inaudible)
+  // Formula: L_2 = L_1 - 20 * log10(d_2/d_1) where L_1 = 75dB at 1m
+  const maxDistance = 50;
+  const effectiveDistance = Math.max(1, Math.min(distance, maxDistance));
+  const baseGain = 0.7;
+  const attenuationGain = baseGain / effectiveDistance;
+
   const t = ctx.currentTime + 0.01;
   const pitch = (180 + Math.random() * 120);
 
@@ -179,7 +188,7 @@ export function playOuch() {
   mix.gain.value = 1.0;
 
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.7, t);
+  gain.gain.setValueAtTime(attenuationGain, t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
 
   osc.connect(f1); osc.connect(f2);

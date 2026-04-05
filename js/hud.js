@@ -10,6 +10,7 @@ const hudCoords          = document.getElementById('coords');
 const hudExpDisplay      = document.getElementById('exp-display');
 const hudZombieCounter   = document.getElementById('zombie-counter');
 const hudZombieBreakdown = document.getElementById('zombie-breakdown');
+const hudExtremeMode     = document.getElementById('extreme-mode');
 const hudAmmoMag         = document.getElementById('ammo-mag');
 const hudAmmoRes         = document.getElementById('ammo-reserve');
 const hitFlash           = document.getElementById('hit-flash');
@@ -43,8 +44,12 @@ export function initHUD() {
     gameOverEl.style.display = 'none';
     pausedEl.style.display = 'none';
     overlayEl.style.display = 'flex';
+    hudExtremeMode.style.display = 'none';
   });
   eventBus.on('roofEntered', () => showRoofMessage());
+  eventBus.on('extremeModeToggled', ({ active }) => {
+    hudExtremeMode.style.display = active ? 'block' : 'none';
+  });
 }
 
 export function updateAmmoHUD(ammoInMag, reserveAmmo) {

@@ -114,7 +114,8 @@ A playable Call of Duty 2-style first-person shooter game built entirely in a si
 - **Space**: Jump
 - **MetaLeft (Cmd/Win)**: Alternate ADS activation
 - **R**: Reload
-- **Y**: Zombie Mode toggle (German QWERTZ: physical Y key)
+- **P**: Peaceful Mode toggle (disable Zombie Mode)
+- **X**: Extreme Mode (fast spawns, chaos)
 - **ESC**: Pause (pointer lock unlock)
 - **Right Click on "Resume"**: Re-acquire pointer lock
 
@@ -187,11 +188,6 @@ A playable Call of Duty 2-style first-person shooter game built entirely in a si
 - Particle system: blood + explosion particles share same geometry
 - Raycasting: filtered to live NPCs only per frame
 - No LOD, fog, or culling optimizations
-
-## German Keyboard Layout
-- Z/Y keys are swapped on German QWERTZ layout
-- Zombie mode is bound to **KeyY** (physical Y key, which is Z on QWERTY)
-- Reload is **KeyR** (same on both layouts)
 
 ## Recent Refactorings
 

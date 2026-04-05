@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>COD2 Browser</title>
+  <title>Rot n' Roll</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
@@ -109,6 +109,19 @@
       line-height: 1.4;
     }
 
+    /* Extreme Mode indicator */
+    #extreme-mode {
+      position: absolute; top: 110px; left: 16px;
+      color: #ff2200; font-size: 1.0rem; letter-spacing: 0.15em;
+      font-weight: bold; display: none;
+      text-shadow: 0 0 8px #ff4400, 0 0 16px #ff2200;
+      animation: extreme-pulse 0.6s ease-in-out infinite alternate;
+    }
+    @keyframes extreme-pulse {
+      from { opacity: 0.7; text-shadow: 0 0 6px #ff4400; }
+      to   { opacity: 1.0; text-shadow: 0 0 14px #ff2200, 0 0 28px #ff0000; }
+    }
+
     /* Hit flash */
     #hit-flash {
       position: fixed; inset: 0; pointer-events: none; z-index: 4;
@@ -166,11 +179,11 @@
 <canvas id="canvas"></canvas>
 
 <div id="overlay">
-  <h1>COD&#8203;2</h1>
+  <h1>ROT N' ROLL</h1>
   <p>WASD &nbsp;–&nbsp; Laufen &nbsp;|&nbsp; SHIFT – Rennen &nbsp;|&nbsp; LEERTASTE – Springen</p>
   <p>LINKSKLICK &nbsp;–&nbsp; Schießen &nbsp;|&nbsp; R – Nachladen</p>
-  <p>RECHTSKLICK / CMD &nbsp;–&nbsp; Anvisieren</p>
-  <p>ESC &nbsp;–&nbsp; Pause</p>
+  <p>RECHTSKLICK / CMD &nbsp;–&nbsp; Anvisieren &nbsp;|&nbsp; ESC – Pause</p>
+  <p>P – Peaceful Mode &nbsp;|&nbsp; X – Extreme Mode</p>
   <button class="start-btn" id="startBtn">Spiel starten</button>
 </div>
 
@@ -197,6 +210,7 @@
   <div id="exp-display">EXP: 0</div>
   <div id="zombie-counter">ZOMBIES: 0</div>
   <div id="zombie-breakdown"></div>
+  <div id="extreme-mode">⚠ EXTREME MODE ⚠</div>
   <div id="kill-feed"></div>
   <div id="pickup-hint">[ MAGAZIN AUFGENOMMEN ]</div>
 </div>

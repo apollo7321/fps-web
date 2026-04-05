@@ -2,6 +2,7 @@
 
 export const GameState = {
   zombieMode: true,
+  extremeMode: false,
   healthRegenTimer: 0,
   guillotineAnimation: null,
   guillotineCutscene: false,   // freezes player + camera during guillotine
@@ -9,6 +10,7 @@ export const GameState = {
 
   reset() {
     this.zombieMode = true;
+    this.extremeMode = false;
     this.healthRegenTimer = 0;
     this.guillotineAnimation = null;
     this.guillotineCutscene = false;

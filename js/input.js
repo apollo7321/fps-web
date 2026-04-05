@@ -16,7 +16,7 @@ export const FOV_ADS = 46;
 
 /**
  * Set up all input event listeners.
- * @param {object} callbacks - { onShoot, onReload, onToggleZombie, onRestart }
+ * @param {object} callbacks - { onShoot, onReload, onToggleZombie, onToggleExtreme, onRestart }
  * @param {object} player - player state for mouse look
  */
 export function setupInput(callbacks, player) {
@@ -30,7 +30,8 @@ export function setupInput(callbacks, player) {
     }
     if (!inputState.locked || inputState.paused) return;
     if (e.code === 'KeyR') callbacks.onReload();
-    if (e.code === 'KeyY') callbacks.onToggleZombie();
+    if (e.code === 'KeyP') callbacks.onToggleZombie();
+    if (e.code === 'KeyX') callbacks.onToggleExtreme();
   });
   document.addEventListener('keyup', e => {
     keys[e.code] = false;

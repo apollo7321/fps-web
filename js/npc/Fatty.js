@@ -38,23 +38,9 @@ export class Fatty extends BaseNPC {
     this.legR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.35, 0.24), matPants);
     this.legR.position.set(0.18, 0.175, 0); this.legR.castShadow = true; g.add(this.legR);
 
-    // ── Massive torso ────────────────────────────────────────────
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.7, 0.7), matShirt);
-    torso.position.set(0, 0.7, 0); torso.castShadow = true; g.add(torso);
-
-    // ── Belly bulge (front) ──────────────────────────────────────
+    // ── Torso ──────────────────────────────────────
     const belly = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6), matShirt);
-    belly.position.set(0, 0.62, 0.22); belly.castShadow = true; g.add(belly);
-
-    // ── Back bulge ───────────────────────────────────────────────
-    const back = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 6), matShirt);
-    back.position.set(0, 0.75, -0.18); g.add(back);
-
-    // ── Side fat rolls ───────────────────────────────────────────
-    const rollL = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.2, 0.4), matShirt);
-    rollL.position.set(-0.48, 0.65, 0.05); g.add(rollL);
-    const rollR = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.2, 0.4), matShirt);
-    rollR.position.set(0.48, 0.65, 0.05); g.add(rollR);
+    belly.position.set(0, 0.70, 0); belly.castShadow = true; g.add(belly);
 
     // ── Short thick arms ─────────────────────────────────────────
     this.armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.34, 0.22), matSkin);

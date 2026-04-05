@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // ═══════════════════════════════════════════════════════════════════
 import { renderer, scene, vmScene, camera, vmCamera } from './renderer.js';
 import { setupLighting } from './lighting.js';
-import { buildWorld, explosiveBarrels, guillotineData } from './world.js';
+import { buildWorld, explosiveBarrels, guillotineData, resetGuillotineData } from './world.js';
 import { updateDoorTriggers } from './doorTriggers.js';
 import { createAmmoPickups, updatePickups, resetPickups } from './pickups.js';
 import { M } from './materials.js';
@@ -112,7 +112,13 @@ function shoot() {
     if (npc && npc.alive) {
       const isHeadshot = hits[0].object.isHeadPart;
       spawnBlood(hits[0].point);
-      eventBus.emit('enemyDamaged');
+
+      // Calculate distance for sound attenuation
+      const dx = npc.group.position.x - player.pos.x;
+      const dz = npc.group.position.z - player.pos.z;
+      const distance = Math.sqrt(dx*dx + dz*dz);
+
+      eventBus.emit('enemyDamaged', { distance });
 
       const expRef = { value: player.exp };
       if (isHeadshot) {
@@ -201,6 +207,7 @@ function resetGame() {
   resetZombieEffects();
   resetPickups();
   clearAllParticles();
+  resetGuillotineData();
 
   // Respawn initial zombies if zombie mode is enabled
   if (GameState.zombieMode) {
@@ -245,6 +252,25 @@ setupInput({
     const breakdown = getZombieBreakdown();
     eventBus.emit('zombieModeToggled', { active: GameState.zombieMode, count: getAliveNPCCount() });
     eventBus.emit('zombieBreakdownChanged', breakdown);
+  },
+  onToggleExtreme: () => {
+    // Extreme mode requires zombie mode to be active
+    if (!GameState.zombieMode) {
+      GameState.zombieMode = true;
+      npcs.forEach(npc => { if (npc.alive && !npc.dying) npc.makeZombie(); });
+      eventBus.emit('zombieModeToggled', { active: true, count: getAliveNPCCount() });
+      eventBus.emit('zombieBreakdownChanged', getZombieBreakdown());
+    }
+    GameState.extremeMode = !GameState.extremeMode;
+    if (GameState.extremeMode) {
+      // Flood immediately with a big initial wave
+      for (let i = 0; i < 8; i++) spawnRandomZombie(player.pos);
+      for (let i = 0; i < 5; i++) spawnRandomCrawler(player.pos);
+      for (let i = 0; i < 3; i++) spawnRandomFatty(player.pos);
+    }
+    eventBus.emit('extremeModeToggled', { active: GameState.extremeMode });
+    eventBus.emit('zombieCountChanged', { count: getAliveNPCCount() });
+    eventBus.emit('zombieBreakdownChanged', getZombieBreakdown());
   },
   onRestart: resetGame,
 }, player);
@@ -298,7 +324,7 @@ function update(dt) {
 
   // ─── Zombie Contact Damage & Spawning ──────────────────────────
   if (GameState.zombieMode) {
-    updateZombieEffects(dt, player);
+    updateZombieEffects(dt, player, GameState.extremeMode);
   } else {
     resetZombieEffects();
   }

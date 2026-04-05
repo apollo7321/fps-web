@@ -18,6 +18,14 @@ export const guillotineData = {
   bladeFalling: false,
 };
 
+export function resetGuillotineData() {
+  if (guillotineData.blade) {
+    guillotineData.blade.position.y = guillotineData.bladeRestY;
+  }
+  guillotineData.triggered = false;
+  guillotineData.bladeFalling = false;
+}
+
 // ── Building Templates ──────────────────────────────────────────
 function buildingA(bx, bz, ry = 0) {
   const W=8, D=10, H=5;
