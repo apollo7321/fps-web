@@ -215,7 +215,7 @@ export function buildWorld() {
   box(6, 0.02, 180, matDirt, 0, 0.01, 0); // road
 
   // Measuring tape
-  buildMeasuringTape();
+  // buildMeasuringTape();
 
   // ── CITY BLOCK LAYOUT ──
   box(80, 0.02, 6, matDirt, 0, 0.011, 0);
