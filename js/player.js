@@ -6,7 +6,7 @@ import * as THREE from 'three';
 export const player = {
   pos:        new THREE.Vector3(0, 1.75, -50),
   vel:        new THREE.Vector3(),
-  yaw:        0,
+  yaw:        Math.PI,
   pitch:      0,
   onGround:   false,
   health:     100,
@@ -19,7 +19,7 @@ export const player = {
 export function resetPlayer() {
   player.pos.set(0, 1.75, -50);
   player.vel.set(0, 0, 0);
-  player.yaw = 0;
+  player.yaw = Math.PI;
   player.pitch = 0;
   player.onGround = false;
   player.health = 100;

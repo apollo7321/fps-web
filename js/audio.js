@@ -14,6 +14,7 @@ export function initAudio() {
   eventBus.on('playerDamaged', () => playPlayerDamageOuch());
   eventBus.on('itemPickup', () => playPickup());
   eventBus.on('explosion', () => playExplosion());
+  eventBus.on('slimeExplosion', () => playSlimeExplosion());
 }
 
 export function getCtx() {
@@ -244,4 +245,34 @@ export function playExplosion() {
   g.connect(ctx.destination);
   osc.start(t);
   osc.stop(t + 0.5);
+}
+
+export function playSlimeExplosion() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+
+  // Wet squelch: low rumble + bubbly noise
+  const osc = ctx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(90, t);
+  osc.frequency.exponentialRampToValueAtTime(25, t + 0.5);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.6, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(t); osc.stop(t + 0.6);
+
+  // Bubble pops
+  for (let i = 0; i < 5; i++) {
+    const delay = 0.02 + Math.random() * 0.15;
+    const pop = ctx.createOscillator();
+    pop.type = 'sine';
+    pop.frequency.setValueAtTime(200 + Math.random() * 300, t + delay);
+    pop.frequency.exponentialRampToValueAtTime(60, t + delay + 0.08);
+    const pg = ctx.createGain();
+    pg.gain.setValueAtTime(0.3, t + delay);
+    pg.gain.exponentialRampToValueAtTime(0.001, t + delay + 0.1);
+    pop.connect(pg); pg.connect(ctx.destination);
+    pop.start(t + delay); pop.stop(t + delay + 0.12);
+  }
 }

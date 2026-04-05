@@ -14,8 +14,10 @@ import { createWeapon } from './weapons/index.js';
 import {
   killNPC, npcs,
   updateNPCs, updateDyingNPCs,
-  spawnRandomZombie, spawnRandomCrawler, resetAllNPCs,
+  spawnRandomZombie, spawnRandomCrawler, spawnRandomFatty, resetAllNPCs,
   getAliveNPCMeshes, getNPCFromMesh, getAliveNPCCount, getZombieBreakdown,
+  updateZombieEffects, resetZombieEffects,
+  setPlayerRef,
 } from './npc/index.js';
 import {
   spawnBlood, spawnBloodFountain, spawnExplosion,
@@ -41,6 +43,17 @@ initHUD();
 CameraController.init();
 buildWorld();
 createAmmoPickups();
+setPlayerRef(player);
+
+// Spawn initial zombies if zombie mode is enabled
+if (GameState.zombieMode) {
+  for (let i = 0; i < 5; i++) spawnRandomZombie(player.pos);
+  for (let i = 0; i < 3; i++) spawnRandomCrawler(player.pos);
+  for (let i = 0; i < 2; i++) spawnRandomFatty(player.pos);
+  const breakdown = getZombieBreakdown();
+  eventBus.emit('zombieModeToggled', { active: true, count: getAliveNPCCount() });
+  eventBus.emit('zombieBreakdownChanged', breakdown);
+}
 
 // Weapon
 const weapon = createWeapon('P08 LUGER');
@@ -185,15 +198,29 @@ function resetGame() {
   PlayerController.reset();
 
   resetAllNPCs();
+  resetZombieEffects();
   resetPickups();
   clearAllParticles();
+
+  // Respawn initial zombies if zombie mode is enabled
+  if (GameState.zombieMode) {
+    for (let i = 0; i < 5; i++) spawnRandomZombie(player.pos);
+    for (let i = 0; i < 3; i++) spawnRandomCrawler(player.pos);
+    for (let i = 0; i < 2; i++) spawnRandomFatty(player.pos);
+  }
 
   vmGroup.visible = true;  // Restore viewmodel visibility
   resetInput();
   eventBus.emit('gameReset');
   eventBus.emit('ammoChanged', { ammoInMag: weapon.ammoInMag, reserveAmmo: weapon.reserveAmmo });
-  eventBus.emit('zombieModeToggled', { active: false, count: 0 });
-  eventBus.emit('zombieBreakdownChanged', { walkers: 0, crawlers: 0 });
+  if (GameState.zombieMode) {
+    const breakdown = getZombieBreakdown();
+    eventBus.emit('zombieModeToggled', { active: true, count: getAliveNPCCount() });
+    eventBus.emit('zombieBreakdownChanged', breakdown);
+  } else {
+    eventBus.emit('zombieModeToggled', { active: false, count: 0 });
+    eventBus.emit('zombieBreakdownChanged', { walkers: 0, crawlers: 0 });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -205,10 +232,11 @@ setupInput({
   onToggleZombie: () => {
     GameState.zombieMode = !GameState.zombieMode;
     if (GameState.zombieMode) {
-      // Spawn initial mix of walkers and crawlers if none exist yet
+      // Spawn initial mix if none exist yet
       if (getAliveNPCCount() === 0) {
-        for (let i = 0; i < 7; i++) spawnRandomZombie(player.pos);
+        for (let i = 0; i < 5; i++) spawnRandomZombie(player.pos);
         for (let i = 0; i < 3; i++) spawnRandomCrawler(player.pos);
+        for (let i = 0; i < 2; i++) spawnRandomFatty(player.pos);
       }
       npcs.forEach(npc => { if (npc.alive && !npc.dying) npc.makeZombie(); });
     } else {
@@ -268,41 +296,11 @@ function update(dt) {
   // ─── NPC AI ───────────────────────────────────────────────────
   updateNPCs(dt, player.pos, GameState.zombieMode);
 
-  // ─── Zombie Contact Damage ────────────────────────────────────
+  // ─── Zombie Contact Damage & Spawning ──────────────────────────
   if (GameState.zombieMode) {
-    const CONTACT_DISTANCE = 0.65;
-    const contactingZombies = npcs.filter(npc => {
-      if (!npc.alive || npc.dying) return false;
-      const dx = npc.group.position.x - player.pos.x;
-      const dz = npc.group.position.z - player.pos.z;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      return dist < CONTACT_DISTANCE;
-    });
-
-    if (contactingZombies.length > 0) {
-      GameState.zombieContactDamageTimer += dt;
-      if (GameState.zombieContactDamageTimer >= 1.0) {
-        player.health -= contactingZombies.length;
-        eventBus.emit('playerDamaged');
-        GameState.zombieContactDamageTimer = 0;
-      }
-    } else {
-      GameState.zombieContactDamageTimer = 0;
-    }
-
-    // Zombie spawning (mix of walkers and crawlers)
-    GameState.zombieSpawnTimer += dt;
-    if (GameState.zombieSpawnTimer >= 10.0) {
-      const spawnCount = 1 + Math.floor(Math.random() * 3);
-      for (let i = 0; i < spawnCount; i++) {
-        if (Math.random() < 0.3) spawnRandomCrawler(player.pos);
-        else spawnRandomZombie(player.pos);
-      }
-      GameState.zombieSpawnTimer = 0;
-    }
+    updateZombieEffects(dt, player);
   } else {
-    GameState.zombieContactDamageTimer = 0;
-    GameState.zombieSpawnTimer = 0;
+    resetZombieEffects();
   }
 
   // ─── Health Regeneration ──────────────────────────────────────

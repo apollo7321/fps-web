@@ -73,6 +73,34 @@ export function spawnExplosion(pos) {
   }
 }
 
+export function spawnSlimeExplosion(pos) {
+  const slimeColors = [0x33aa11, 0x44cc22, 0x66dd33, 0x228800];
+  for (let i = 0; i < 100; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const elevation = Math.random() * Math.PI * 0.4;
+    const speed = 6 + Math.random() * 10;
+
+    const m = new THREE.Mesh(bloodGeo, new THREE.MeshBasicMaterial({
+      color: slimeColors[Math.floor(Math.random() * slimeColors.length)],
+      transparent: true,
+    }));
+    m.position.copy(pos);
+    scene.add(m);
+
+    const vx = Math.cos(angle) * Math.cos(elevation) * speed;
+    const vy = Math.sin(elevation) * speed + 2 + Math.random() * 5;
+    const vz = Math.sin(angle) * Math.cos(elevation) * speed;
+
+    const life = 1.5 + Math.random() * 0.8;
+    bloodParticles.push({
+      mesh: m,
+      vel: new THREE.Vector3(vx, vy, vz),
+      life,
+      maxLife: life,
+    });
+  }
+}
+
 export function updateParticles(dt) {
   for (let i = bloodParticles.length - 1; i >= 0; i--) {
     const bp = bloodParticles[i];

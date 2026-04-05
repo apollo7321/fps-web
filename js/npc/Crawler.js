@@ -95,4 +95,29 @@ export class Crawler extends BaseNPC {
     this.legL = null;
     this.legR = null;
   }
+
+  getXP(isHeadshot) {
+    return isHeadshot ? 3 : 2;
+  }
+
+  getContactDamageInterval() {
+    return 0.5;
+  }
+
+  getZombieSpeed() {
+    return 5.5;
+  }
+
+  updateAnimation(walkSpeed, dt) {
+    if (walkSpeed > 0) {
+      this.walkCycle += dt * 7;
+      const swing = Math.sin(this.walkCycle);
+      const crawlOffset = 0.6;
+      this.armL.rotation.x = crawlOffset + swing * 0.9;
+      this.armR.rotation.x = crawlOffset - swing * 0.9;
+    } else {
+      this.armL.rotation.x += (0.6 - this.armL.rotation.x) * 0.1;
+      this.armR.rotation.x += (0.6 - this.armR.rotation.x) * 0.1;
+    }
+  }
 }

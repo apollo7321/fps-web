@@ -30,7 +30,7 @@ export function initHUD() {
   eventBus.on('reloadMsg',            ({ show }) => showReloadMsg(show));
   eventBus.on('zombieModeToggled',    ({ active, count }) => updateZombieCounter(active, count));
   eventBus.on('zombieCountChanged',   ({ count }) => updateZombieCounterValue(count));
-  eventBus.on('zombieBreakdownChanged', ({ walkers, crawlers }) => updateZombieBreakdown(walkers, crawlers));
+  eventBus.on('zombieBreakdownChanged', ({ walkers, crawlers, fatties }) => updateZombieBreakdown(walkers, crawlers, fatties));
   eventBus.on('pickupHintUpdate',     ({ show, text }) => {
     pickupHint.style.display = show ? 'block' : 'none';
     if (text !== undefined) pickupHint.textContent = text;
@@ -103,8 +103,8 @@ export function updateZombieCounterValue(count) {
   hudZombieCounter.textContent = `ZOMBIES: ${count}`;
 }
 
-export function updateZombieBreakdown(walkerCount, crawlerCount) {
-  hudZombieBreakdown.innerHTML = `Walkers: ${walkerCount}<br>Crawlers: ${crawlerCount}`;
+export function updateZombieBreakdown(walkerCount, crawlerCount, fattyCount = 0) {
+  hudZombieBreakdown.innerHTML = `Walkers: ${walkerCount}<br>Crawlers: ${crawlerCount}<br>Fatties: ${fattyCount}`;
 }
 
 export function showRoofMessage() {

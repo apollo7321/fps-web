@@ -25,18 +25,36 @@ A modular, performant browser-based first-person shooter running in a single `in
     - `P08Luger.js` (and similar): Concrete implementations extending `WeaponBase`.
     - `index.js`: Re-exports all weapons to make importing cleaner for the central registry.
   - **`npc/`**: Sub-directory dedicated to enemy/friendly AI logic.
-    - `NPCManager.js`: Handles spawning, updating, iterating, and removing NPCs en masse.
-    - `NPC.js`: Individual logic for single NPC behavior (pathfinding, states, health, collision boundaries).
+    - `BaseNPC.js`: Abstract base class with shared state, polymorphic methods for all NPC types.
+    - `Walker.js`: Standing unit with variants, legs, helmet. Default speeds/XP.
+    - `Crawler.js`: Prone unit, crawling arms, higher speed (5.5), higher damage rate (0.5s), custom animation.
+    - `Fatty.js`: Massive unit, can explode. Custom behavior/explosion parameters/particle spawn.
+    - `NPCManager.js`: Generic spawning, killing, collision, update orchestration. No `instanceof` checks.
     - `index.js`: Exposes NPC functionality to the rest of the game.
+  - `doorTriggers.js`: Proximity-based door-to-roof teleportation system for buildings.
 
 ## ⚙️ Game Loop Flow
 When extending or debugging, keep the central game loop sequence (found in `main.js`) in mind to prevent side effects:
 1. **Delta Time Calculation**: Determine time passed since last frame.
 2. **Controller Updates** (`PlayerController` handling inputs/movement, `CameraController` handling viewmodes).
-3. **Logic Update Step** (`NPCManager.update()`, Weapon cooldowns, Particle updates)
-4. **Collision Resolution Step** (e.g. Raycasting: Are bullets hitting NPCs? Triggers?)
-5. **Event Emission**: HUD and Audio are not updated directly; instead, specific events (e.g. `eventBus.emit('weaponFired')`) are dispatched.
-6. **Render Step** (`renderer.js`)
+3. **Door Triggers** (`updateDoorTriggers()` checking proximity for roof teleportation).
+4. **Logic Update Step** (`NPCManager.update()`, Weapon cooldowns, Particle updates).
+5. **Collision Resolution Step** (e.g. Raycasting: Are bullets hitting NPCs? Triggers?).
+6. **Event Emission**: HUD and Audio are not updated directly; instead, specific events (e.g. `eventBus.emit('weaponFired')`) are dispatched.
+7. **Render Step** (`renderer.js`).
+
+## 📡 EventBus Architecture
+The `EventBus.js` module decouples core gameplay from UI/Audio systems. Key events:
+- `weaponFired`: Weapon fired (triggers sound, muzzle flash, recoil).
+- `reloadStarted` / `reloadMsg`: Reload state changes (HUD updates).
+- `enemyKilled` / `enemyDamaged`: NPC health/death (kill feed, audio cues).
+- `ammoChanged`: Ammo count updates (HUD ammo display).
+- `roofEntered`: Player entered a building roof via door trigger (HUD message).
+- `gameOver` / `gameReset`: Game state transitions (UI overlays, HUD visibility).
+- `pickupHintUpdate`: Ammo pickup state (show/hide hint on HUD).
+- `zombieModeToggled` / `zombieCountChanged`: Zombie mode events (HUD counters).
+
+**Rule**: Never manipulate DOM directly from gameplay code. Always emit events; HUD handlers subscribe via `eventBus.on()` in `initHUD()`.
 
 ## 🤖 AI Agent Conventions (How to add features)
 
@@ -53,9 +71,38 @@ When extending or debugging, keep the central game loop sequence (found in `main
 5. Register or instantiate the weapon within the player's inventory context (`player.js` or `main.js`).
 
 ### 3. How to add a new NPC type
-1. If the NPC shares standard behavior, extend the `NPC` class inside `js/npc/NPC.js`. If it requires heavily customized logic (e.g., a Boss), create a new class (e.g., `BossNPC.js`) extending `NPC`.
-2. Ensure `NPCManager.js` handles the specific instantiation/spawning logic for this new type if required.
-3. Validate that its hitboxes register properly with the weapon raycasting/collision system.
+1. Extend `BaseNPC` from `js/npc/BaseNPC.js` (e.g., create `js/npc/Fatty.js`).
+2. Implement `buildModel()` to define the visual mesh structure.
+3. Override **polymorphic methods** for type-specific behavior:
+   - `getXP(isHeadshot)`: EXP reward (default 1/2).
+   - `getContactDamageInterval()`: Damage frequency (default 1.0s).
+   - `getZombieSpeed()`: Chase speed in zombie mode (default 3.5).
+   - `getMinSpawnDistance()`: Min distance from player to spawn (default 15).
+   - `updateAnimation(walkSpeed, dt)`: Limb animation logic (default walker animation).
+   - `updateZombieBehavior(dt, distToPlayer)`: Return `null` (normal), `'skip'` (suppress movement), or `'explode'`.
+4. **For exploding NPCs** (e.g., Fatty):
+   - Override `canExplode()` → return `true`.
+   - Override `getExplosionRadius()`, `getExplosionDamage()`, `getExplosionEvent()`, `spawnExplosionParticles(pos)`.
+   - `NPCManager.handleNPCExplosion()` handles the rest generically.
+5. Optionally override `makeZombie()`, `makeNormal()`, or `reset()` for additional behavior.
+6. Call `spawnRandomNPCType()` in zombie wave spawning (update `updateZombieEffects()` in `NPCManager.js`).
+7. **NPC Hierarchy**:
+   ```
+   BaseNPC (state + polymorphic methods)
+   ├── Walker (default: speed 3.5, XP 1/2, standard animation)
+   ├── Crawler (speed 5.5, XP 2/3, damage rate 0.5s, custom crawl animation)
+   └── Fatty (speed 2.6, XP 3/5, min spawn 20, explodes at 3m radius)
+   ```
+
+### 4. How to add a new Door/Building Trigger
+1. In `js/world.js`, after building a structure (e.g., `buildingA(x, z, rotation)`), call:
+   ```javascript
+   registerDoor(doorX, doorZ, roofX, roofZ, roofHeight);
+   ```
+2. Door position should be on the building's front face, offset by building depth/2.
+3. Roof position is the building center; roof height is the building's top (e.g., 5 for buildingA).
+4. Player eye height (1.75) is automatically added by `teleportToRoof()`.
+5. Trigger radius is fixed at 1.2m; adjust in `doorTriggers.js` if needed.
 
 ## 🛠 Troubleshooting for AI
 - **"X is not defined"**: Check the relative paths and ensure the file exports the component correctly. Remember that browser module imports require the `.js` extension.

@@ -84,4 +84,5 @@ export class Walker extends BaseNPC {
 
     this.headParts = [this.head, helmet, helmetBrim, smCenter, smL, smR, ...this.eyes];
   }
+
 }

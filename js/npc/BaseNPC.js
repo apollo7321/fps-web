@@ -41,11 +41,87 @@ export class BaseNPC {
     this.deathSlideStart = 0;
     this.deathSlideStartZ = 0;
 
+    // Contact damage timer (per-NPC, for controlling damage frequency)
+    this.contactDamageTimer = 0;
+
     this.buildModel();
   }
 
-  /** Override in subclasses to build the visual mesh. */
+  // ─── Override in subclasses ────────────────────────────────────
+
+  /** Build the visual mesh. */
   buildModel() {}
+
+  /** XP reward for killing this NPC. */
+  getXP(isHeadshot) {
+    return isHeadshot ? 2 : 1;
+  }
+
+  /** Contact damage interval in seconds. */
+  getContactDamageInterval() {
+    return 1.0;
+  }
+
+  /** Movement speed in zombie mode. */
+  getZombieSpeed() {
+    return 3.5;
+  }
+
+  /** Minimum spawn distance from player. */
+  getMinSpawnDistance() {
+    return 15;
+  }
+
+  /**
+   * Called each frame in zombie mode before normal movement.
+   * Return 'skip' to suppress movement this frame,
+   * 'explode' to trigger an explosion, or null for normal chase.
+   */
+  updateZombieBehavior(dt, distToPlayer) {
+    return null;
+  }
+
+  /**
+   * Walk/idle animation. Override for type-specific animation.
+   */
+  updateAnimation(walkSpeed, dt) {
+    if (walkSpeed > 0) {
+      this.walkCycle += dt * (walkSpeed > 3 ? 8 : 4);
+      const swing = Math.sin(this.walkCycle);
+      if (this.legL) {
+        this.legL.rotation.x =  swing * (walkSpeed > 3 ? 0.55 : 0.38);
+        this.legR.rotation.x = -swing * (walkSpeed > 3 ? 0.55 : 0.38);
+      }
+      this.armL.rotation.x = -swing * 0.6;
+      this.armR.rotation.x =  swing * 0.6;
+    } else {
+      if (this.legL) {
+        this.legL.rotation.x *= 0.85;
+        this.legR.rotation.x *= 0.85;
+      }
+      this.armL.rotation.x *= 0.85;
+      this.armR.rotation.x *= 0.85;
+    }
+  }
+
+  // ─── Explosion interface (for exploding NPC types) ─────────────
+
+  /** Whether this NPC type can explode. */
+  canExplode() { return false; }
+
+  /** Blast radius in meters. */
+  getExplosionRadius() { return 0; }
+
+  /** Max damage to player at point blank. */
+  getExplosionDamage() { return 0; }
+
+  /** EventBus event name for the explosion sound. */
+  getExplosionEvent() { return 'explosion'; }
+
+  /** Spawn explosion particles at given position. */
+  spawnExplosionParticles(pos) {}
+
+  // ─── Shared methods ────────────────────────────────────────────
 
   makeZombie() {
     this.smileParts.forEach(part => this.group.remove(part));
@@ -66,6 +142,7 @@ export class BaseNPC {
     this.state = 'idle';
     this.dyingTimer = 0;
     this.isHeadshot = false;
+    this.contactDamageTimer = 0;
     this.group.position.set(this.pos.x, 0, this.pos.z);
     this.group.rotation.set(0, 0, 0);
     this.headParts.forEach(part => {
